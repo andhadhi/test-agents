@@ -6,22 +6,37 @@
         {
             "name": "OPENAI_KEY",
             "type": "secret"
+        },
+        {
+            "name": "MONGO_DEFAULT_URL",
+            "type": "secret"
+        },
+        {
+            "name": "MONGO_DATA_URL",
+            "type": "secret"
+        },
+        {
+            "name": "OPENSEARCH_USERNAME",
+            "type": "secret"
+        },
+        {
+            "name": "OPENSEARCH_PASSWORD",
+            "type": "secret"
         }
     ],
     "tags": [],
     "tasks": [
         {
-            "name": "generate-agent-data",
+            "name": "generate_agent_data",
             "depends_on": [],
             "retries": 2,
             "timeout": "5m",
             "container": {
                 "image": "python:3-slim",
                 "env": [
-                    
                 ],
                 "command": [
-                    "pip install -r requirements.txt && python src/main.py"
+                    "pip install -r requirements.txt && python main.py"
                 ]
             }
         }
