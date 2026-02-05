@@ -1,6 +1,6 @@
 {
-    "name": "my-first-dag",
-    "description": "My First Dag",
+    "name": "marketing-toolkit",
+    "description": "Marketing Toolkit Embeddings",
     "operator": "kubernetes",
     "cron": "*/5 * * * *",
     "variables": [
