@@ -2,42 +2,26 @@
     "name": "marketing-toolkit",
     "description": "Marketing Toolkit Embeddings",
     "operator": "kubernetes",
-    "cron": "* * */24 * *",
     "variables": [
         {
             "name": "OPENAI_KEY",
-            "type": "secret"
-        },
-        {
-            "name": "MONGO_DEFAULT_URL",
-            "type": "secret"
-        },
-        {
-            "name": "MONGO_DATA_URL",
-            "type": "secret"
-        },
-        {
-            "name": "USERNAME_OPENSEARCH",
-            "type": "secret"
-        },
-        {
-            "name": "PASSWORD_OPENSEARCH",
             "type": "secret"
         }
     ],
     "tags": [],
     "tasks": [
         {
-            "name": "generate_agent_data",
+            "name": "generate-agent-data",
             "depends_on": [],
             "retries": 2,
             "timeout": "5m",
             "container": {
                 "image": "python:3-slim",
                 "env": [
+                    
                 ],
                 "command": [
-                    "pip install -r requirements.txt && python main.py"
+                    "pip install -r requirements.txt && python src/main.py"
                 ]
             }
         }
