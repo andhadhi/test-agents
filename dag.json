@@ -2,7 +2,6 @@
     "name": "marketing-toolkit",
     "description": "Marketing Toolkit Embeddings",
     "operator": "kubernetes",
-    "cron": "*/5 * * * *",
     "variables": [
         {
             "name": "OPENAI_KEY",
