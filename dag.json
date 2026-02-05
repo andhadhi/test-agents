@@ -1,0 +1,30 @@
+{
+    "name": "my-first-dag",
+    "description": "My First Dag",
+    "operator": "kubernetes",
+    "cron": "*/5 * * * *",
+    "variables": [
+        {
+            "name": "OPENAI_KEY",
+            "type": "secret"
+        }
+    ],
+    "tags": [],
+    "tasks": [
+        {
+            "name": "generate_agent_data",
+            "depends_on": [],
+            "retries": 2,
+            "timeout": "5m",
+            "container": {
+                "image": "python:3-slim",
+                "env": [
+                    
+                ],
+                "command": [
+                    "pip install -r requirements.txt && python src/main.py"
+                ]
+            }
+        }
+    ]
+}
