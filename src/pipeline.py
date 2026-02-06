@@ -1,4 +1,5 @@
 import json
+import logging
 from tqdm import tqdm
 from bs4 import BeautifulSoup
 import asyncio
@@ -14,6 +15,9 @@ from src.config import DESCRIPTION_SIZE,OPENSEARCH_PASSWORD,OPENSEARCH_USERNAME
 from opensearchpy import OpenSearch
 from opensearchpy.helpers import bulk
 
+logger = logging.getLogger(__name__)
+
+
 class Pipeline():
     def __init__(self):
         self._mongo_data = MongoData()
@@ -26,13 +30,26 @@ class Pipeline():
             timeout=60,
             max_retries=5,
             retry_on_timeout=True )
-        
-    async def run(self,toolkit_article_id):
+        logger.info("Pipeline initialized: OpenSearch client and Mongo clients ready")
+
+    async def run(self, toolkit_article_id):
+        logger.info("Pipeline run started for toolkit_article_id=%s", toolkit_article_id)
         try:
             users_data = await self._mongo_data.get_all_active_users(toolkit_article_id)
+            total_users = len(users_data)
+            logger.info("Fetched %d active users from Mongo for collection %s", total_users, toolkit_article_id)
+
+            # Slice for processing (e.g. users_data[100:])
+            slice_start = 100
+            to_process = users_data[slice_start:]
+            process_count = len(to_process)
+            logger.info("Processing %d users (slice [%d:])", process_count, slice_start)
+
             result = []
 
-            for user_data in users_data[100:]:
+            for idx, user_data in enumerate(to_process):
+                if idx % 10 == 0 or idx == 0:
+                    logger.info("Processing user %d/%d", idx + 1, process_count)
                 _id = user_data.get("_id")
                 created_at = user_data.get("createdAt")
                 updated_at = user_data.get("updatedAt")
@@ -140,8 +157,7 @@ class Pipeline():
                                                 )
                     toolkit_article_json["id"] = str(_id)
                     embeddings = await get_embedding(toolkit_formated_value)
-                    # print(_id, embeddings,len(description) if description else "")
-                    print(_id)
+                    logger.debug("Embedding obtained for _id=%s (description chunks=%s)", _id, len(description) if description else 0)
                     final_json = { "id": str(_id), 
                             "text":toolkit_formated_value, 
                             "search_content" : desc["search_content"],
@@ -151,10 +167,12 @@ class Pipeline():
                     result.append(final_json)
                     # with open("result.json",'w') as f:
                     #     json.dump(final_json,f,indent=4 ,default=str)
+            logger.info("Prepared %d documents for bulk index", len(result))
+
             actions = [
                 {
                     "_index": "marketing_toolkit_dag",
-                    
+
                     "_source": {
                         "id": str(doc["id"]),
                         "text": doc["text"],
@@ -176,6 +194,7 @@ class Pipeline():
             #         }
             #     },f,indent=4,default=str)
             loop = asyncio.get_running_loop()
+            logger.info("Starting bulk index to OpenSearch (chunk_size=200, request_timeout=60)")
             await loop.run_in_executor(
                 None,
                 lambda: bulk(
@@ -185,12 +204,11 @@ class Pipeline():
                     request_timeout=60
                 )
             )
+            logger.info("Bulk index to OpenSearch completed successfully")
             bulk(self.open_search_client, actions)
-
-
-            # with open("my_list.pkl", "wb") as f:
-            #     pickle.dump(result, f)
+            logger.info("Pipeline run completed for toolkit_article_id=%s", toolkit_article_id)
         except Exception as e:
+            logger.exception("Pipeline run failed for toolkit_article_id=%s: %s", toolkit_article_id, e)
             raise RuntimeError(f"General error occurred: {e}")
 
 
