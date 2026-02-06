@@ -153,7 +153,7 @@ class Pipeline():
                     #     json.dump(final_json,f,indent=4 ,default=str)
             actions = [
                 {
-                    "_index": "marketing_toolkit",
+                    "_index": "marketing_toolkit_dag",
                     
                     "_source": {
                         "id": str(doc["id"]),
